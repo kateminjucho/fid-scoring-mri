@@ -1,6 +1,11 @@
+certifi==2022.12.7
+charset-normalizer==3.1.0
 contourpy==1.0.7
 cycler==0.11.0
+filelock==3.9.0
 fonttools==4.39.0
+huggingface-hub==0.13.1
+idna==3.4
 importlib-resources==5.12.0
 kiwisolver==1.4.4
 matplotlib==3.7.1
@@ -10,7 +15,13 @@ Pillow==9.4.0
 pydicom==2.3.1
 pyparsing==3.0.9
 python-dateutil==2.8.2
+PyYAML==6.0
+requests==2.28.2
 six==1.16.0
+timm==0.6.12
 torch==1.13.1
+torchvision==0.14.1
+tqdm==4.65.0
 typing-extensions==4.5.0
+urllib3==1.26.15
 zipp==3.15.0
