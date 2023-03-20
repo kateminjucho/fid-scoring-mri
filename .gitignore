@@ -6,6 +6,7 @@ __pycache__/
 
 AM002_20220812_3691639/
 *.png
+!knee_imgs_sample/*.png
 
 # C extensions
 *.so
