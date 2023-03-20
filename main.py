@@ -28,6 +28,10 @@ def main():
     recon_path = sorted(glob.glob("./AM002_20220812_3691639/swift_recon_low/6_T1 AX FSE_swift/*.dcm"))
     standard_img = Image.fromarray(norm_dcm_array(img_to_array(standard_path[0]))).convert("RGB")
     recon_img = Image.fromarray(norm_dcm_array(img_to_array(recon_path[0]))).convert("RGB")
+    out_img = Image.new('RGB', (1024, 512))
+    out_img.paste(standard_img, (0, 0))
+    out_img.paste(recon_img, (512, 0))
+    out_img.save('./result.png')
 
     file_path_list = [standard_img, recon_img]
     img_list: list = [preprocess(fp) for fp in file_path_list]
