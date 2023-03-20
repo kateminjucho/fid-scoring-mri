@@ -5,7 +5,7 @@ import torch
 from torchvision import transforms
 from PIL import Image
 import timm
-from utils import img_to_array
+from utils import img_to_array, norm_dcm_array
 import glob
 
 
@@ -26,8 +26,8 @@ def preprocess(img: Image.Image) -> Image.Image:
 def main():
     standard_path = sorted(glob.glob("./AM002_20220812_3691639/standard/5_T1 AX FSE/*.dcm"))
     recon_path = sorted(glob.glob("./AM002_20220812_3691639/swift_recon_low/6_T1 AX FSE_swift/*.dcm"))
-    standard_img = Image.fromarray(img_to_array(standard_path[0])).convert("RGB")
-    recon_img = Image.fromarray(img_to_array(recon_path[0])).convert("RGB")
+    standard_img = Image.fromarray(norm_dcm_array(img_to_array(standard_path[0]))).convert("RGB")
+    recon_img = Image.fromarray(norm_dcm_array(img_to_array(recon_path[0]))).convert("RGB")
 
     file_path_list = [standard_img, recon_img]
     img_list: list = [preprocess(fp) for fp in file_path_list]

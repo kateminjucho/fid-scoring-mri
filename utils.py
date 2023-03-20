@@ -12,11 +12,11 @@ def img_to_array(dcm_path: str):
 
 
 def norm_dcm_array(dcm_array: np.ndarray, low: int = None, high: int = None) -> np.ndarray:
-    assert low < high
-
     if low is None:
         low = np.min(dcm_array)
     if high is None:
         high = np.max(dcm_array)
+
+    assert low < high
 
     return (np.clip((dcm_array - low) / (high - low), 0, 1) * 255).astype(np.uint8)
