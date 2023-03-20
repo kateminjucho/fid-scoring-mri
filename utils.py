@@ -1,5 +1,7 @@
 from pydicom import dcmread
 import numpy as np
+from torchvision import transforms
+from PIL import Image
 
 
 def img_to_array(dcm_path: str):
@@ -20,3 +22,17 @@ def norm_dcm_array(dcm_array: np.ndarray, low: int = None, high: int = None) -> 
     assert low < high
 
     return (np.clip((dcm_array - low) / (high - low), 0, 1) * 255).astype(np.uint8)
+
+
+def load_png(file_path: str) -> Image.Image:
+    return Image.open(file_path)
+
+
+def preprocess(img: Image.Image) -> Image.Image:
+    pipeline = transforms.Compose([
+        transforms.Resize(512),
+        transforms.CenterCrop(512),
+        transforms.ToTensor(),
+        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+    ])
+    return pipeline(img)

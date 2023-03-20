@@ -5,7 +5,7 @@ __pycache__/
 .DS_Store
 
 AM002_20220812_3691639/
-.DS_Store
+*.png
 
 # C extensions
 *.so
