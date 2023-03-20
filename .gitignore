@@ -4,6 +4,9 @@ __pycache__/
 *$py.class
 .DS_Store
 
+AM002_20220812_3691639/
+.DS_Store
+
 # C extensions
 *.so
 
