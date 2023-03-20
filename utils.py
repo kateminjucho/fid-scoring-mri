@@ -1,6 +1,7 @@
 from pydicom import dcmread
 import numpy as np
 from torchvision import transforms
+from torchvision.transforms import functional as F
 from PIL import Image
 
 
@@ -28,10 +29,21 @@ def load_png(file_path: str) -> Image.Image:
     return Image.open(file_path)
 
 
+class Crop:
+    def __init__(self):
+        self.left = 128
+        self.top = 256
+        self.width = 128
+        self.height = 128
+
+    def __call__(self, img):
+        return F.crop(img, self.top, self.left, self.height, self.width)
+
+
 def preprocess(img: Image.Image) -> Image.Image:
     pipeline = transforms.Compose([
         transforms.Resize(512),
-        transforms.CenterCrop(512),
+        # Crop(),
         transforms.ToTensor(),
         transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
     ])

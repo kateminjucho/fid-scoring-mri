@@ -19,11 +19,17 @@ def main():
     swift_recon_low_path = sorted(glob.glob("./AM002_20220812_3691639/swift_recon_low/*/*.dcm"))
     swift_recon_medium_path = sorted(glob.glob("./AM002_20220812_3691639/swift_recon_medium/*/*.dcm"))
     sim_matrix = np.zeros([4, 4])  # * len(standard_path)
-
-    distance = CosineSimilarity()
+    # for n in tqdm(range(len(standard_path))):
+    #     out_img = Image.new('RGB', (1024, 1024))
+    #     out_img.paste(Image.fromarray(norm_dcm_array(img_to_array(standard_path[n]))), (0, 0))
+    #     out_img.paste(Image.fromarray(norm_dcm_array(img_to_array(swift_path[n]))), (512, 0))
+    #     out_img.paste(Image.fromarray(norm_dcm_array(img_to_array(swift_recon_low_path[n]))), (0, 512))
+    #     out_img.paste(Image.fromarray(norm_dcm_array(img_to_array(swift_recon_medium_path[n]))), (512, 512))
+    #     out_img.save('./%03d.png'%n)
+    distance = EuclideanDistance()
     m = timm.create_model('inception_v3', pretrained=True, num_classes=0)
 
-    for n in tqdm(range(len(standard_path))):
+    for n in tqdm(range(85)):
         standard_img = Image.fromarray(norm_dcm_array(img_to_array(standard_path[n]))).convert("RGB")
         swift_img = Image.fromarray(norm_dcm_array(img_to_array(swift_path[n]))).convert("RGB")
         swift_recon_low_img = Image.fromarray(norm_dcm_array(img_to_array(swift_recon_low_path[n]))).convert("RGB")
@@ -44,7 +50,7 @@ def main():
     sim_matrix = sim_matrix / len(standard_path)
     fig = plt.figure()
     plt.imshow(sim_matrix)
-    fig.savefig('./cosine_sim_matrix.png')
+    fig.savefig('./eud_sim_matrix_512.png')
 
 
 if __name__ == '__main__':
