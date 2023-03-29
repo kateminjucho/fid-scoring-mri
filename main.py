@@ -61,7 +61,10 @@ def feature_computation(m, distance, standard_path, swift_path, swift_recon_low_
 
 def grad_cam(m, standard_img, swift_img, swift_recon_low_img, swift_recon_medium_img):
     file_path_list = [standard_img, swift_img, swift_recon_low_img, swift_recon_medium_img]
+    # Preprocess 해서 list 형태로 만들어 둠.
     img_list: list = [preprocess(fp) for fp in file_path_list]
+
+    # 모델을 두 부분으로 나눔 (M_BEFORE, M_AFTER)
     m_before = torch.nn.Sequential(*list(m.children())[:10])
     m_after = torch.nn.Sequential(*list(m.children())[10:])
     with torch.no_grad():
