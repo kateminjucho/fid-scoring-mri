@@ -59,8 +59,8 @@ def feature_computation(m, distance, standard_path, swift_path, swift_recon_low_
     fig.savefig('./eud_sim_matrix_512.png')
 
 
-def grad_cam(m, standard_img, swift_img, swift_recon_low_img, swift_recon_medium_img, level: int = 10):
-    file_path_list = [standard_img, swift_img, swift_recon_low_img, swift_recon_medium_img]
+def grad_cam(m, standard_img, recon_img, level: int = 10):
+    file_path_list = [standard_img, recon_img]
     # Preprocess 해서 list 형태로 만들어 둠.
     img_list: list = [preprocess(fp) for fp in file_path_list]
 
@@ -71,7 +71,7 @@ def grad_cam(m, standard_img, swift_img, swift_recon_low_img, swift_recon_medium
     # m_before을 forwarding 해서 feature 뽑음. 이 feature에 대해서 gradCAM 적용
     with torch.no_grad():
         img1 = img_list[0].unsqueeze(0)
-        img2 = img_list[2].unsqueeze(0)
+        img2 = img_list[1].unsqueeze(0)
         feat1 = m_before(img1)
         feat2 = m_before(img2)
 
@@ -106,44 +106,47 @@ def grad_cam(m, standard_img, swift_img, swift_recon_low_img, swift_recon_medium
     heatmap = Image.fromarray(cv2.applyColorMap(red_grads, cv2.COLORMAP_JET)).resize((512, 512),
                                                                                      resample=Image.Resampling.BICUBIC)
     out_img = Image.new('RGB', (512 * 3, 512))
-    out_img.paste(swift_recon_low_img, (0, 0))
-    out_img.paste(Image.blend(swift_recon_low_img, heatmap, 0.5), (512, 0))
+    out_img.paste(recon_img, (0, 0))
+    out_img.paste(Image.blend(recon_img, heatmap, 0.5), (512, 0))
     out_img.paste(standard_img, (512 * 2, 0))
     return out_img, cam_norm
 
 
 def main():
-    standard_path = sorted(glob.glob("./AM002_20220812_3691639/standard/*/*.dcm"))
-    swift_path = sorted(glob.glob("./AM002_20220812_3691639/swift/*/*.dcm"))
-    swift_recon_low_path = sorted(glob.glob("./AM002_20220812_3691639/swift_recon_low/*/*.dcm"))
-    swift_recon_medium_path = sorted(glob.glob("./AM002_20220812_3691639/swift_recon_medium/*/*.dcm"))
+    # standard_path = sorted(glob.glob("./AM002_20220812_3691639/standard/*/*.dcm"))
+    # swift_path = sorted(glob.glob("./AM002_20220812_3691639/swift/*/*.dcm"))
+    # swift_recon_low_path = sorted(glob.glob("./AM002_20220812_3691639/swift_recon_low/*/*.dcm"))
+    # swift_recon_medium_path = sorted(glob.glob("./AM002_20220812_3691639/swift_recon_medium/*/*.dcm"))
+
+    standard_path = sorted(glob.glob("/Volumes/AIRS_CR6/cmc_s_knee/standard/115/*/*.dcm"))
+    recon_path = sorted(glob.glob("/Volumes/AIRS_CR6/cmc_s_knee/recon_M/115/*/*.dcm"))
 
     m = timm.create_model('inception_v3', pretrained=True, num_classes=0)
     for n in range(20, 110):
         grads_gathered = np.zeros([512, 512]).astype(np.float32)
         for level in range(0, 19):
             standard_img = Image.fromarray(norm_dcm_array(img_to_array(standard_path[n]))).convert("RGB")
-            swift_img = Image.fromarray(norm_dcm_array(img_to_array(swift_path[n]))).convert("RGB")
-            swift_recon_low_img = Image.fromarray(norm_dcm_array(img_to_array(swift_recon_low_path[n]))).convert("RGB")
-            swift_recon_medium_img = Image.fromarray(norm_dcm_array(img_to_array(swift_recon_medium_path[n]))).convert(
-                "RGB")
+            recon_img = Image.fromarray(norm_dcm_array(img_to_array(recon_path[n]))).convert("RGB")
+            # swift_recon_low_img = Image.fromarray(norm_dcm_array(img_to_array(swift_recon_low_path[n]))).convert("RGB")
+            # swift_recon_medium_img = Image.fromarray(norm_dcm_array(img_to_array(swift_recon_medium_path[n]))).convert(
+            #     "RGB")
 
-            grad_cam_img, grads = grad_cam(m, standard_img, swift_img, swift_recon_low_img, swift_recon_medium_img,
-                                           level)
+            grad_cam_img, grads = grad_cam(m, standard_img, recon_img, level)
             grads = cv2.resize(grads, (512, 512), interpolation=cv2.INTER_CUBIC)
             grads_gathered += grads
 
         grads_gathered_norm = 255 * (grads_gathered - grads_gathered.min()) / (grads_gathered.max() - grads_gathered.min())
         heatmap = Image.fromarray(cv2.applyColorMap(grads_gathered_norm.astype(np.uint8), cv2.COLORMAP_JET))
 
-        diff = (np.array(standard_img).astype(np.float32) - np.array(swift_recon_low_img).astype(np.float32) + 255) / 2
+        recon_img = recon_img.resize((512, 512), resample=Image.Resampling.BICUBIC)
+        diff = (np.array(standard_img).astype(np.float32) - np.array(recon_img).astype(np.float32) + 255) / 2
         diff_img = Image.fromarray(cv2.applyColorMap(diff.astype(np.uint8), cv2.COLORMAP_JET))
         final_img = Image.new('RGB', (512 * 4, 512))
-        final_img.paste(swift_recon_low_img, (0, 0))
-        final_img.paste(Image.blend(swift_recon_low_img, heatmap, 0.5), (512, 0))
+        final_img.paste(recon_img, (0, 0))
+        final_img.paste(Image.blend(recon_img, heatmap, 0.5), (512, 0))
         final_img.paste(standard_img, (512 * 2, 0))
         final_img.paste(diff_img, (512 * 3, 0))
-        final_img.save('./result/final_%02d.png' % n)
+        final_img.save('./result/cmc_knee/final_%02d.png' % n)
 
 
 if __name__ == '__main__':
